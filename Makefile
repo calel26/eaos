@@ -98,6 +98,9 @@ iso: $(build_dir)/$(iso_file)
 qemu: img
 	qemu-system-x86_64 -drive format=raw,file=$(build_dir)/$(img_file)
 
+qemu-iso: iso
+	qemu-system-x86_64 -cdrom $(build_dir)/$(iso_file)
+
 .PHONY: all clean img qemu iso
 
 # include all the dependency data for all the files generated
