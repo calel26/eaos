@@ -77,6 +77,9 @@ idt_register:
 ;     dq 0 ; a blank entry. this is not the NULL entry like exists in the GDT
 ; end_idt:
 
+kernel_signature:
+    dw 26985 ; magic number
+
 ; mbr boot signature
 times 510-($-$$) db 0
 dw 0xAA55

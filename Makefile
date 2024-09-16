@@ -71,13 +71,13 @@ $(build_dir)/%.S.o: %.S
 $(build_dir):
 	mkdir $(build_dir)
 
-$(build_dir)/$(img_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file)
-# write img file full of zeros
-	dd if=/dev/zero of=$(build_dir)/$(img_file) bs=512 count=8192
-# copy bootsector
-	dd if=$(build_dir)/$(bootloader_out) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=1 seek=0
-# copy kernel
-	dd if=$(build_dir)/$(out_file) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=7680 seek=1
+# $(build_dir)/$(img_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file)
+# # write img file full of zeros
+# 	dd if=/dev/zero of=$(build_dir)/$(img_file) bs=512 count=8192
+# # copy bootsector
+# 	dd if=$(build_dir)/$(bootloader_out) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=1 seek=0
+# # copy kernel
+# 	dd if=$(build_dir)/$(out_file) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=7680 seek=1
 
 $(build_dir)/$(bootloader_out): $(bootloader)
 #	$(LD) $(LDFLAGS) $< -o $@ --oformat binary
@@ -86,22 +86,30 @@ $(build_dir)/$(bootloader_out): $(bootloader)
 $(build_dir)/$(iso_file): $(build_dir)/$(img_file)
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
-	mkisofs -b $(bootloader_out) -o build/$(iso_file) -no-emul-boot -boot-load-size 4 $(build_dir)/iso
+	cp $(build_dir)/$(out_file) $(build_dir)/iso/$(out_file)
+	mkisofs \
+		-b $(bootloader_out) \
+		-o build/$(iso_file) \
+		-no-emul-boot \
+		-boot-load-size 4 \
+		-p LAWSON \
+		-V EAOS_BOOT_DRIVE \
+		$(build_dir)/iso
 
 clean: $(build_dir)
 	rm -rf $(build_dir)
 
-img: $(build_dir)/$(img_file)
+# img: $(build_dir)/$(img_file)
 
 iso: $(build_dir)/$(iso_file)
 
-qemu: img
-	qemu-system-x86_64 -drive format=raw,file=$(build_dir)/$(img_file)
+# qemu: img
+# 	qemu-system-x86_64 -drive format=raw,file=$(build_dir)/$(img_file)
 
-qemu-iso: iso
+qemu: iso
 	qemu-system-x86_64 -cdrom $(build_dir)/$(iso_file)
 
-.PHONY: all clean img qemu iso
+.PHONY: all clean qemu iso
 
 # include all the dependency data for all the files generated
 # by the c preprocessor (w/ -MD and -MMD flags)
