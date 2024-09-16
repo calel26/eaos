@@ -83,7 +83,7 @@ $(build_dir)/$(bootloader_out): $(bootloader)
 #	$(LD) $(LDFLAGS) $< -o $@ --oformat binary
 	$(ASM) $(bootloader) -o $@ -f bin
 
-$(build_dir)/$(iso_file): $(build_dir)/$(img_file)
+$(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file)
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
 	cp $(build_dir)/$(out_file) $(build_dir)/iso/$(out_file)

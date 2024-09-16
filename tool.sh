@@ -4,7 +4,7 @@ set -e
 TOOL_NAME=$1
 
 if [ ! -f tool/$TOOL_NAME.c ]; then
-    echo "The tool `$TOOL_NAME` doesn't exist!"
+    echo "The tool $TOOL_NAME doesn't exist!"
     exit 1
 fi
 

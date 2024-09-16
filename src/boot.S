@@ -5,6 +5,7 @@ global _start
 
 _start:
     cli ; turn off interrupts
+    mov [boot_drive_number], dl ; save the drive number we just booted from
     mov si, message
     mov ah, 0x0E ; set up interrupt. 0x0E is the print char command
 .loop:
@@ -15,6 +16,8 @@ _start:
     jmp .loop ; continue
 
 .printed:
+    ; while we're in real mode, there's still things to do.
+
     ; let's enable protected mode!
     jmp enable_protected
 
@@ -33,6 +36,9 @@ enable_protected:
     ; 1MB --> 4GB of addressable memory
     ; 32bit (or 16bit) operand sizes (going to use 32)
     jmp protected_start
+
+boot_drive_number:
+    db 0 ; reserve a byte for it in memory
 
 ; PROTECTED MODE SECTION!
 ; now using 32 bit operand sizes
