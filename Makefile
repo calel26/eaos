@@ -87,7 +87,8 @@ $(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_di
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
 	cp $(build_dir)/$(out_file) $(build_dir)/iso/$(out_file)
-	mkisofs \
+	xorriso \
+		-as mkisofs \
 		-b $(bootloader_out) \
 		-o build/$(iso_file) \
 		-no-emul-boot \

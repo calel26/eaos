@@ -9,6 +9,9 @@ The kernel will be started in 64bit Long mode.
 The GDT will be set up for a flat memory layout, but
 paging will NOT be enabled.
 
+The kernel itself will have been loaded into memory at 
+address `0x100000` (1MB).
+
  > Kernel Binary Header
 The magic decimal number `26,985` must be the first two
 bytes of the kernel to indicate to the bootloader that

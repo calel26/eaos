@@ -6,6 +6,21 @@ global _start
 _start:
     cli ; turn off interrupts
     mov [boot_drive_number], dl ; save the drive number we just booted from
+
+    ; enable the a20 flag so that we can address a WHOPPING
+    ; 16 FULL MEGABYTES OF MEMORY -- YAY!!!
+
+    mov ax, 0x2402 ; check a20 gate if it's enabled
+    int 0x15
+    cmp ah, 0 ; is it enabled?
+    jnz .a20_active ; yes, continue!
+    ; no, we need to enable it
+
+    mov ax, 0x2401 ; enable the a20 gate
+    int 0x15
+.a20_active:
+    ; WOOOOO 15 EXTRA MEGABYTEES
+
     mov si, message
     mov ah, 0x0E ; set up interrupt. 0x0E is the print char command
 .loop:
@@ -17,13 +32,21 @@ _start:
 
 .printed:
     ; while we're in real mode, there's still things to do.
-
-    ; let's enable protected mode!
-    jmp enable_protected
+    jmp load_kernel
 
 idle:
     hlt
     jmp $
+
+load_kernel:
+    mov ah, 0x42 ; EXTENDED READ
+    mov si, [disk_address_packet]
+    mov dl, boot_drive_number
+    int 0x13 ; call bios w/ DISK interrupt
+
+.done:
+    ; let's enable protected mode!
+    jmp enable_protected
 
 enable_protected:
     ; enabling protected mode involves flipping one bit on
@@ -39,6 +62,36 @@ enable_protected:
 
 boot_drive_number:
     db 0 ; reserve a byte for it in memory
+
+kernel_address:
+    dd 0x100000 ; 1MB, past the protected BIOS area
+
+;     Format of disk address packet:
+; Offset  Size    Description     (Table 00272)
+;  00h    BYTE    size of packet (10h or 18h)
+;  01h    BYTE    reserved (0)
+;  02h    WORD    number of blocks to transfer (max 007Fh for Phoenix EDD)
+;  04h    DWORD   transfer buffer
+;  08h    QWORD   starting absolute block number
+;                 (for non-LBA devices, compute as
+;                   (Cylinder*NumHeads + SelectedHead) * SectorPerTrack +
+;                   SelectedSector - 1
+;  10h    QWORD   (EDD-3.0, optional) 64-bit flat address of transfer buffer;
+;                   used if DWORD at 04h is FFFFh:FFFFh
+disk_address_packet:
+dap_size:
+    db disk_address_packet_end - $ ; size of this packet
+    db 0 ; reserved
+dap_nblocks:
+    dw 40 ; number of blocks/sectors to transfer
+dap_dest:
+    dd 0 ; transfer buffer
+dap_sector_start:
+    dq 0 ; absolute starting block number
+    ; dq 0 ; 64 bit address of transfer buffer
+    ; not using this ^ because we want to access the kernel
+    ; now (in real mode) to verify that it is in fact a kernel
+disk_address_packet_end:
 
 ; PROTECTED MODE SECTION!
 ; now using 32 bit operand sizes
