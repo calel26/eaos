@@ -1,5 +1,6 @@
 #include "limine.h"
 #include "eaos.h"
+#include "framebuffer.h"
 
 __attribute__((used, section(".requests")))
 static volatile LIMINE_BASE_REVISION(2);
