@@ -41,6 +41,11 @@ idle:
 load_kernel:
     mov ah, 0x42 ; EXTENDED READ
     mov si, [disk_address_packet]
+    mov eax, [kernel_address]
+    sub eax, 0x20000 ; subtract 20KB to store the ISO data.
+    mov [dap_dest], eax
+    mov byte [dap_nblocks], 0x1
+    mov byte [dap_sector_start], 0xF
     mov dl, boot_drive_number
     int 0x13 ; call bios w/ DISK interrupt
 
@@ -83,7 +88,7 @@ dap_size:
     db disk_address_packet_end - $ ; size of this packet
     db 0 ; reserved
 dap_nblocks:
-    dw 40 ; number of blocks/sectors to transfer
+    dw 5 ; number of blocks/sectors to transfer
 dap_dest:
     dd 0 ; transfer buffer
 dap_sector_start:
@@ -92,6 +97,9 @@ dap_sector_start:
     ; not using this ^ because we want to access the kernel
     ; now (in real mode) to verify that it is in fact a kernel
 disk_address_packet_end:
+
+kernel_name:
+    db "kernel.bin", 0
 
 ; PROTECTED MODE SECTION!
 ; now using 32 bit operand sizes

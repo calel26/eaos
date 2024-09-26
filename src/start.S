@@ -1,7 +1,7 @@
-section .header
-; bootloader header
-dw 26985 ; magic number
-db 4, "eaos" ; kernel ID
-
+global _start
 section .text
-_start: 
+
+extern start
+
+_start:
+    jmp start

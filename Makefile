@@ -1,5 +1,9 @@
 # eaos build system
 
+version := 0.1.0
+limine_version := 8.0.13
+
+ext_dir := ext
 build_dir := build
 source_dir := src
 out_file := kernel.bin
@@ -49,14 +53,16 @@ CPPFLAGS := \
 	-MMD
 
 LDFLAGS := \
-	-e _start
+	-e _start \
+	-T linker.ld
 
 # -- targets --
 all: $(build_dir) $(build_dir)/$(out_file)
 
 # link step
 $(build_dir)/$(out_file): $(objects)
-	$(LD) $(LDFLAGS) $< -o $@ --oformat binary
+	echo $(objects)
+	$(LD) $(LDFLAGS) $^ -o $@
 
 $(build_dir)/%.c.o: %.c
 # 		make sure this directory exists in the build folder
@@ -66,39 +72,58 @@ $(build_dir)/%.c.o: %.c
 
 $(build_dir)/%.S.o: %.S
 	mkdir -p $(dir $@)
-	$(ASM) $< -MD -o $@ -f elf
+	$(ASM) $< -MD -o $@ -f elf64
 
 $(build_dir):
 	mkdir $(build_dir)
 
-# $(build_dir)/$(img_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file)
-# # write img file full of zeros
-# 	dd if=/dev/zero of=$(build_dir)/$(img_file) bs=512 count=8192
-# # copy bootsector
-# 	dd if=$(build_dir)/$(bootloader_out) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=1 seek=0
-# # copy kernel
-# 	dd if=$(build_dir)/$(out_file) of=$(build_dir)/$(img_file) conv=notrunc bs=512 count=7680 seek=1
-
 $(build_dir)/$(bootloader_out): $(bootloader)
-#	$(LD) $(LDFLAGS) $< -o $@ --oformat binary
 	$(ASM) $(bootloader) -o $@ -f bin
 
-$(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file)
+$(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file) $(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin release-info
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
 	cp $(build_dir)/$(out_file) $(build_dir)/iso/$(out_file)
+	cp $(build_dir)/release.txt $(build_dir)/iso/release.txt
+	mkdir -p $(build_dir)/iso/boot
+	cp $(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin $(build_dir)/iso/boot/
+	cp $(ext_dir)/limine/limine-$(limine_version)/bin/limine-bios-cd.bin $(build_dir)/iso/boot/
+	cp $(ext_dir)/limine/limine-$(limine_version)/bin/limine-bios.sys $(build_dir)/iso/boot/
+	cp limine.conf $(build_dir)/iso/boot/
+	mkdir -p $(build_dir)/iso/EFI/BOOT
+	cp $(ext_dir)/limine/limine-$(limine_version)/bin/BOOTX64.EFI $(build_dir)/iso/EFI/BOOT/
+# -b $(bootloader_out)
 	xorriso \
 		-as mkisofs \
-		-b $(bootloader_out) \
-		-o build/$(iso_file) \
-		-no-emul-boot \
-		-boot-load-size 4 \
+		-o $(build_dir)/$(iso_file) \
+		-b boot/limine-bios-cd.bin \
+		-no-emul-boot -boot-load-size 4 -boot-info-table \
+		--efi-boot-part --efi-boot-image --protective-msdos-label \
+		--efi-boot boot/limine-uefi-cd.bin \
 		-p LAWSON \
 		-V EAOS_BOOT_DRIVE \
 		$(build_dir)/iso
 
-clean: $(build_dir)
+	$(ext_dir)/limine/limine-$(limine_version)/bin/limine bios-install $(build_dir)/$(iso_file)
+
+$(ext_dir)/limine:
+	# download limine
+	mkdir -p $(ext_dir)/limine
+	curl -L https://github.com/limine-bootloader/limine/releases/download/v$(limine_version)/limine-$(limine_version).tar.xz -o ext/limine/limine-$(limine_version).tar.xz 
+	tar xf $(ext_dir)/limine/limine-$(limine_version).tar.xz -C $(ext_dir)/limine/
+
+$(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin: $(ext_dir)/limine
+	# build limine!
+	cd $(ext_dir)/limine/limine-$(limine_version); \
+		./configure --enable-uefi-x86-64 --enable-uefi-cd \
+			--enable-bios --enable-bios-cd; \
+		make
+
+clean:
 	rm -rf $(build_dir)
+
+clean-ext:
+	rm -rf $(ext_dir)
 
 # img: $(build_dir)/$(img_file)
 
@@ -110,7 +135,12 @@ iso: $(build_dir)/$(iso_file)
 qemu: iso
 	qemu-system-x86_64 -cdrom $(build_dir)/$(iso_file)
 
-.PHONY: all clean qemu iso
+release-info:
+	rm -f $(build_dir)/release.txt
+	touch $(build_dir)/release.txt
+	echo "EAOS $(version)\nBuilt $(shell TZ=UTC date)" > $(build_dir)/release.txt
+
+.PHONY: all clean clean-ext qemu iso release-info
 
 # include all the dependency data for all the files generated
 # by the c preprocessor (w/ -MD and -MMD flags)

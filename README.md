@@ -2,9 +2,10 @@
 > an operating system
 
 # dependencies
-- clang
+- clang (with c23 support)
 - nasm
-- xorriso (only required if you want to make an iso file)
+- xorriso
+- mtools
 
 # running the OS
 There are two primary ways to get the OS up and running:
