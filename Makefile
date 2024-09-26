@@ -23,7 +23,7 @@ bootloader_objects := $(bootloader:%=$(build_dir)/%.o)
 # these are the generated depfiles that clang makes
 depfiles := $(objects:.o:.d)
 
-include_dirs := $(shell find $(source_dir) -type d)
+include_dirs := $(shell find $(source_dir) -type d) $(ext_dir)/limine/limine-$(limine_version)
 I_flags := $(addprefix -I,$(include_dirs))
 
 toolchain_location = ../llvm-project/build/bin
@@ -35,8 +35,8 @@ LD := ld.lld
 ASM := nasm
 
 cross_args := \
-    -target x86_64-pc-none \
-    -ffreestanding \
+	-target x86_64-pc-none \
+	-ffreestanding \
 	-nostdlib \
 	-fno-builtin \
 	-static \
@@ -81,6 +81,7 @@ $(build_dir)/$(bootloader_out): $(bootloader)
 	$(ASM) $(bootloader) -o $@ -f bin
 
 $(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file) $(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin release-info
+	rm -rf $(build_dir)/iso
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
 	cp $(build_dir)/$(out_file) $(build_dir)/iso/$(out_file)
