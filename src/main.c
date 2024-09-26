@@ -16,7 +16,7 @@ void start(void) {
 
     // loop forever
     while (1) {
-        int j = b / 1-1;
-        // __asm__( "hlt" );
+        // int j = b / 1-1;
+        __asm__( "hlt" );
     }
 }

@@ -80,7 +80,7 @@ $(build_dir):
 $(build_dir)/$(bootloader_out): $(bootloader)
 	$(ASM) $(bootloader) -o $@ -f bin
 
-$(build_dir)/$(iso_file): $(build_dir) $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file) $(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin release-info
+$(build_dir)/$(iso_file): $(build_dir) $(ext_dir)/limine/limine-$(limine_version)/bin  $(build_dir)/$(bootloader_out) $(build_dir)/$(out_file) release-info
 	rm -rf $(build_dir)/iso
 	mkdir -p $(build_dir)/iso
 	cp $(build_dir)/$(bootloader_out) $(build_dir)/iso/$(bootloader_out)
@@ -113,7 +113,7 @@ $(ext_dir)/limine:
 	curl -L https://github.com/limine-bootloader/limine/releases/download/v$(limine_version)/limine-$(limine_version).tar.xz -o ext/limine/limine-$(limine_version).tar.xz 
 	tar xf $(ext_dir)/limine/limine-$(limine_version).tar.xz -C $(ext_dir)/limine/
 
-$(ext_dir)/limine/limine-$(limine_version)/bin/limine-uefi-cd.bin: $(ext_dir)/limine
+$(ext_dir)/limine/limine-$(limine_version)/bin: $(ext_dir)/limine
 	# build limine!
 	cd $(ext_dir)/limine/limine-$(limine_version); \
 		./configure --enable-uefi-x86-64 --enable-uefi-cd \
