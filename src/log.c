@@ -1,4 +1,5 @@
 #include "log.h"
+#include "eaos.h"
 #include "framebuffer.h"
 
 struct eaos_terminal *active_terminal;
@@ -47,6 +48,18 @@ void kerr(char *str) {
     kmsg(&ll_error, str);
 }
 
+// Panics with a message and then spins.
 void kpanic(char *str) {
+    active_terminal->active_color = ll_error.color;
+    fb_print(active_terminal, "\n !! KERNEL PANIC !!\n");
 
+    active_terminal->active_color = 0xffffff;
+    fb_print(active_terminal, "The kernel encountered a major issue and\nhad to stop. Please reboot your computer!\n\n");
+
+    active_terminal->active_color = 0x9e9e9e;
+    fb_print(active_terminal, "Error message: ");
+    active_terminal->active_color = 0xffffff;
+    fb_print(active_terminal, str);
+
+    spin();
 }

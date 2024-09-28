@@ -20,3 +20,5 @@ typedef int64_t i64;
 
 typedef uintptr_t usize;
 typedef intptr_t isize;
+
+void spin(void);

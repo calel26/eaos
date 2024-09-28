@@ -35,8 +35,5 @@ void start(void) {
     kwarn("oh no!");
     kerr("terrible things are happening now...");
 
-    // loop forever
-    while (1) {
-        __asm__( "hlt" );
-    }
+    kpanic("No tasks left to do");
 }
