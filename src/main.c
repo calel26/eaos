@@ -1,6 +1,7 @@
 #include "eaos.h"
 #include "limine.h"
 #include "framebuffer.h"
+#include "log.h"
 
 __attribute__((used, section(".requests_start_marker")))
 static volatile LIMINE_REQUESTS_START_MARKER;
@@ -23,11 +24,16 @@ void start(void) {
         .framebuffer = fb_get_framebuffer()
     };
 
-    fb_print(&term, "hola mundo\n- eaos\n");
-    fb_print(&term, "===========\n\n");
-    term.active_color = 0x7d1dcc;
-    fb_print(&term, "I love being purple\n");
-    fb_print(&term, "- patrick");
+    fb_print(&term, "Welcome to ");
+    term.active_color = 0xc663ff;
+    fb_print(&term, "eaos");
+    term.active_color = 0xffffff;
+    fb_print(&term, "!\n===================\n\n");
+
+    log_setterm(&term);
+    kinfo("good things are happening");
+    kwarn("oh no!");
+    kerr("terrible things are happening now...");
 
     // loop forever
     while (1) {

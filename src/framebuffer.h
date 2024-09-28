@@ -1,3 +1,5 @@
+#pragma once
+
 #include "eaos.h"
 #include "limine.h"
 

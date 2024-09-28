@@ -61,7 +61,6 @@ all: $(build_dir) $(build_dir)/$(out_file)
 
 # link step
 $(build_dir)/$(out_file): $(objects)
-	echo $(objects)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 $(build_dir)/%.c.o: %.c
