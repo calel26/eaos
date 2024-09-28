@@ -17,4 +17,4 @@ trap clean_up EXIT
 
 clang -o $TEMP_COMP_DIR/$TOOL_NAME tool/$TOOL_NAME.c
 
-$TEMP_COMP_DIR/$TOOL_NAME
+$TEMP_COMP_DIR/$TOOL_NAME ${@:2}
