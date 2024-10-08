@@ -1,7 +1,8 @@
-#include "eaos.h"
+#include "cpu/idt.h"
 #include "limine.h"
 #include "framebuffer.h"
 #include "log.h"
+#include "mem/phys.h"
 
 __attribute__((used, section(".requests_start_marker")))
 static volatile LIMINE_REQUESTS_START_MARKER;
@@ -13,9 +14,6 @@ __attribute__((used, section(".requests")))
 static volatile LIMINE_BASE_REVISION(2);
 
 void start(void) {
-    bool a = false;
-    i32 b = 5;
-
     // make_it_purple();
     struct eaos_terminal term = {
         .line = 0,
@@ -31,9 +29,19 @@ void start(void) {
     fb_print(&term, "!\n===================\n\n");
 
     log_setterm(&term);
-    kinfo("good things are happening");
-    kwarn("oh no!");
-    kerr("terrible things are happening now...");
+    kinfo("starting up!");
 
-    kpanic("No tasks left to do");
+    // init_pmm();
+    // u64 *a = kalloc(1);
+    // *a = 5;
+    setup_idt();
+
+    kwarn("dividing by zero to ensure that the div/0 handler works!");
+    kerr("not...");
+
+    volatile u8 a = 59;
+    volatile u8 b = 0;
+    volatile u8 c = a / b;
+
+    kpanic("no tasks left to do");
 }

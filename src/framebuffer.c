@@ -12,7 +12,7 @@ struct psf1 {
     u16 magic;
     u8 modes;
     u8 glyph_size;
-};
+} __attribute__((packed));
 
 static const u8 font[] = {
 #embed "assets/zap-light16.psf"

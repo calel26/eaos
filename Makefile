@@ -45,6 +45,9 @@ cross_args := \
 # c compiler flags
 CFLAGS := \
 	-std=c23 \
+	-Wall \
+	-g \
+	-O0 \
 	$(cross_args)
 
 # preprocessor flags
@@ -71,7 +74,7 @@ $(build_dir)/%.c.o: %.c
 
 $(build_dir)/%.S.o: %.S
 	mkdir -p $(dir $@)
-	$(ASM) $< -MD -o $@ -f elf64
+	$(ASM) $< -Wall -MD -o $@ -f elf64
 
 $(build_dir):
 	mkdir $(build_dir)
@@ -135,12 +138,15 @@ iso: $(build_dir)/$(iso_file)
 qemu: iso
 	qemu-system-x86_64 -cdrom $(build_dir)/$(iso_file)
 
+debug-qemu: iso
+	qemu-system-x86_64 -cdrom $(build_dir)/$(iso_file) -gdb tcp::10002 -S
+
 release-info:
 	rm -f $(build_dir)/release.txt
 	touch $(build_dir)/release.txt
 	echo "EAOS $(version)\nBuilt $(shell TZ=UTC date)" > $(build_dir)/release.txt
 
-.PHONY: all clean clean-ext qemu iso release-info
+.PHONY: all clean clean-ext qemu iso release-info debug-qemu
 
 # include all the dependency data for all the files generated
 # by the c preprocessor (w/ -MD and -MMD flags)

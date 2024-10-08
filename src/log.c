@@ -63,3 +63,24 @@ void kpanic(char *str) {
 
     spin();
 }
+
+static char hexalphabet[16] = "01234567890abcef";
+
+void print_number(u64 value) {
+    char buffer[16];
+    
+    // Iterate over each nibble (4 bits) of the 64-bit value (16 hex digits in total)
+    for (int i = 15; i >= 0; i--) {
+        buffer[i] = hexalphabet[value & 0xF];  // Extract the last 4 bits (1 hex digit)
+        value >>= 4;  // Shift the value 4 bits to the right
+    }
+
+    fb_print(active_terminal, "0x");
+
+    // Print each hex character
+    for (int i = 0; i < 16; i++) {
+        fb_printc(active_terminal, buffer[i]);
+    }
+
+    fb_printc(active_terminal, '\n');
+}

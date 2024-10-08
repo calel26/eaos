@@ -14,4 +14,6 @@ void kerr(char *str);
 
 void kpanic(char *str);
 
+void print_number(u64 value);
+
 void log_setterm(struct eaos_terminal *term);

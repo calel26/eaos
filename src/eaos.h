@@ -5,6 +5,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// a pointer to zero.
+#define null 0
+
 // some nice integer types
 typedef uint8_t u8;
 typedef int8_t i8;
