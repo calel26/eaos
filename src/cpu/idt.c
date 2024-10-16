@@ -28,7 +28,6 @@ struct idtr {
     u64 base;
 } __attribute__((packed));
 
-
 void set_idt_entry(u8 vector, void *isr, u8 flags, struct idt_entry *idt) {
     u64 a = (u64) isr;
     idt[vector].isr_low = (a & 0xFFFF);
@@ -36,14 +35,17 @@ void set_idt_entry(u8 vector, void *isr, u8 flags, struct idt_entry *idt) {
     idt[vector].isr_high = ((a & 0xFFFFFFFF00000000) >> 32);
     // idt[vector].attributes = flags;
     idt[vector].attributes = 0x8E;
-    idt[vector].kernel_cs = 0x01;
+    idt[vector].ist = 0;
+    idt[vector].kernel_cs = 0x28;
     idt[vector].reserved = 0;
 }
 
-#define intr __attribute__((interrupt))
+// #define intr __attribute__((interrupt))
+// ^ this causes everything to break!
+#define intr
 
 intr void div_by_zero(struct interrupt_frame* stack_frame) {
-    for(;;) {}
+    kpanic("division by zero");
 };
 intr void single_step_interrupt(struct interrupt_frame* stack_frame) {};
 intr void nmi_error(struct interrupt_frame *stack_frame) {};
@@ -53,8 +55,7 @@ intr void bound_range_exceeded(struct interrupt_frame *stack_frame) {};
 intr void invalid_opcode(struct interrupt_frame *stack_frame) {};
 intr void coprocessor_not_available(struct interrupt_frame *stack_frame) {};
 intr void double_fault(struct interrupt_frame *stack_frame) {
-    for(;;) {}
-    // kpanic("double fault");
+    kpanic("there was a double fault");
 }
 intr void invalid_tss(struct interrupt_frame *stack_frame) {};
 intr void segment_invalid(struct interrupt_frame *stack_frame) {};
@@ -68,18 +69,15 @@ intr void SIMD_float_exception(struct interrupt_frame *stack_frame) {};
 intr void virtualization_exception(struct interrupt_frame *stack_frame) {};
 intr void control_protection_exception(struct interrupt_frame *stack_frame) {};
 
-__attribute__((section("text")))
 struct idt_entry idt[256];
 
-struct idtr idtr_register = {
-    .limit = sizeof(idt) - 1,
-    .base = (u64) idt
-};
-
 void setup_idt(void) {
+    struct idtr idtr_register = {
+        .base = (u64) &idt,
+        .limit = sizeof(idt) - 1
+    };
+
     kinfo("setting up IDT");
-    print_number(*(u64*) &idtr_register);
-    spin();
 
     void* handlers[32] = {
         div_by_zero,
@@ -122,9 +120,7 @@ void setup_idt(void) {
     __asm__ volatile ("lidt %0" : : "m" (idtr_register));
     __asm__ volatile ("sti"); // enable interrupts
 
-    kinfo("printing idtr:\n");
-    print_number(idtr_register.base);
-    print_number((u64) idtr_register.limit);
+    kinfo("printing idtr:");
     struct idt_entry *first = (struct idt_entry*)idtr_register.base;
     u64 isr = (u64) first->isr_low | ((u64) first->isr_mid << 16) | ((u64) first->isr_high << 32);
 

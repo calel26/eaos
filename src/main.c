@@ -1,4 +1,5 @@
 #include "cpu/idt.h"
+#include "eaos.h"
 #include "limine.h"
 #include "framebuffer.h"
 #include "log.h"
@@ -36,8 +37,7 @@ void start(void) {
     // *a = 5;
     setup_idt();
 
-    kwarn("dividing by zero to ensure that the div/0 handler works!");
-    kerr("not...");
+    kerr("dividing by zero to ensure that the div/0 handler works!");
 
     volatile u8 a = 59;
     volatile u8 b = 0;
