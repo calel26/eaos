@@ -55,22 +55,38 @@ void div_by_zero_test() {
 }
 
 #define MEMTEST_VALIDATION_NUMBER 0x42
+#define MEMTEST_PAGES 3
+#define XSTR(s) STR(s)
+#define STR(s) #s
+#define MEMTEST_PASS "Memtest passed! All numbers were " XSTR(MEMTEST_VALIDATION_NUMBER)
+#define MEMTEST_FAIL "Memtest failed! Not all numbers were " XSTR(MEMTEST_VALIDATION_NUMBER) ". See output above."
 
 void alloc_test() {
     kinfo("allocating memory!");
-    void* page = kalloc(1);
+    void* page = kalloc(MEMTEST_PAGES);
 
-    memset(page, MEMTEST_VALIDATION_NUMBER, MEM_PAGE_SIZE);
+    memset(page, MEMTEST_VALIDATION_NUMBER, MEM_PAGE_SIZE * MEMTEST_PAGES);
 
     isize i_bad_at = -1;
-    for (usize i = 0; i < MEM_PAGE_SIZE; i++) {
-        if ((*(u8*) (page + i)) != MEMTEST_VALIDATION_NUMBER) { i_bad_at = i; break; }
+    for (usize i = 0; i < MEM_PAGE_SIZE * MEMTEST_PAGES; i++) {
+        if ((*(u8*) (page + i)) != MEMTEST_VALIDATION_NUMBER) {
+            i_bad_at = i;
+            kwarn("not " XSTR(MEMTEST_VALIDATION_NUMBER) " at:");
+            print_number((u64) (page + i));
+        }
     }
 
     if (i_bad_at == -1) {
-        kinfo("All 42!");
+        struct log_level pass = {
+            .name = "pass",
+            .color = 0x7cff6e
+        };
+        kmsg(&pass, MEMTEST_PASS);
     } else {
-        kwarn("It's not 42 at:");
-        print_number((u64) i_bad_at);
+        struct log_level fail = {
+            .name = "fail",
+            .color = 0xff6e6e
+        };
+        kmsg(&fail, MEMTEST_FAIL);
     }
 }
