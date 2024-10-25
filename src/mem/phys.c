@@ -3,27 +3,30 @@
 #include "limine.h"
 #include "eaos.h"
 
-#define PAGE_SIZE 4096
-
 __attribute__((used, section(".requests")))
 struct limine_memmap_request memmap = {
     .id = LIMINE_MEMMAP_REQUEST,
     .revision = 0
 };
 
+__attribute__((used, section(".requests")))
+// HHDM = higher half direct memory
+struct limine_hhdm_request hhdm_request = {
+    .id = LIMINE_HHDM_REQUEST,
+    .revision = 0
+};
+
 struct pmm {
     void* end;
     void* head;
+    void* v_end;
+    void* v_head;
 };
 
 struct pmm pmm_status;
 
 void init_pmm(void) {
     kinfo("Initializing kernel physical memory allocator...");
-    if (true) {
-        kwarn("^ not yet");
-        return;
-    }
     if(memmap.response == null) {
         kpanic("didn't get memmap from limine");
     }
@@ -46,12 +49,13 @@ void init_pmm(void) {
 }
 
 void* kalloc(u32 pages) {
-    pmm_status.head += PAGE_SIZE;
+    void* head = pmm_status.head;
+    pmm_status.head += MEM_PAGE_SIZE * pages;
     if (pmm_status.head > pmm_status.end) {
         kpanic("out of memory");
     }
 
-    return pmm_status.head;
+    return head + hhdm_request.response->offset;
 };
 
 void kfree(void *ptr) {

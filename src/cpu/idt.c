@@ -61,7 +61,9 @@ intr void invalid_tss(struct interrupt_frame *stack_frame) {};
 intr void segment_invalid(struct interrupt_frame *stack_frame) {};
 intr void stack_segment_fault(struct interrupt_frame *stack_frame) {};
 intr void general_protection_fault(struct interrupt_frame *stack_frame) {};
-intr void page_fault(struct interrupt_frame *stack_frame) {};
+intr void page_fault(struct interrupt_frame *stack_frame) {
+    kpanic("page fault!");
+};
 intr void x87_float_exception(struct interrupt_frame *stack_frame) {};
 intr void alignment_check(struct interrupt_frame *stack_frame) {};
 intr void machine_check(struct interrupt_frame *stack_frame) {};
@@ -102,7 +104,7 @@ void setup_idt(void) {
         SIMD_float_exception,
         virtualization_exception,
         control_protection_exception,
-        // all else = NULL
+        // all else = null
     };
 
     // the interrupt handler will run in ring 0. this value is ignored by hardware interrupts which happen in ring 0 regardless
@@ -119,14 +121,6 @@ void setup_idt(void) {
 
     __asm__ volatile ("lidt %0" : : "m" (idtr_register));
     __asm__ volatile ("sti"); // enable interrupts
-
-    kinfo("printing idtr:");
-    struct idt_entry *first = (struct idt_entry*)idtr_register.base;
-    u64 isr = (u64) first->isr_low | ((u64) first->isr_mid << 16) | ((u64) first->isr_high << 32);
-
-    print_number(isr);
-    kinfo("as opposed to");
-    print_number((u64) div_by_zero);
 
     kinfo("IDT loaded");
 }
