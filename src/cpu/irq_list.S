@@ -4,7 +4,10 @@ section .text
 extern %1
 global %1_entry
 %1_entry:
-    ; Prologue: Save registers to the stack
+    cli
+
+    ; Call the C handler passed as a parameter
+    ; push registers to stack
     push rax
     push rbx
     push rcx
@@ -14,10 +17,9 @@ global %1_entry
     push rbp
     pushfq
 
-    ; Call the C handler passed as a parameter
     call %1
 
-    ; Epilogue: Restore registers from the stack
+    ; pop registers from stack
     popfq
     pop rbp
     pop rdi
@@ -28,6 +30,7 @@ global %1_entry
     pop rax
 
     ; Return from interrupt
+    sti
     iretq
 %endmacro
 

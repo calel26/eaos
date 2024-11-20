@@ -43,16 +43,16 @@ void start(void) {
     setup_idt();
     init_pmm();
 
-    // div_by_zero_test();
     alloc_test();
 
     kbd_init();
     timer_init();
 
     init_pic();
+    // div_by_zero_test();
 
     fb_printc(&term, '\n');
-    kinfo(" *  Done  * ");
+    kinfo(" *  Startup Complete!  * ");
     spin();
 }
 

@@ -62,6 +62,9 @@ void kpanic(char *str) {
     active_terminal->active_color = 0xffffff;
     fb_print(active_terminal, str);
 
+    // clear interrupts before spinning to prevent continuing from a panic
+    __asm__ volatile ( "cli" );
+
     spin();
 }
 
