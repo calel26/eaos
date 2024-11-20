@@ -1,6 +1,7 @@
 #include "log.h"
 #include "eaos.h"
 #include "framebuffer.h"
+#include <stdarg.h>
 
 struct eaos_terminal *active_terminal;
 
@@ -83,4 +84,11 @@ void print_number(u64 value) {
     }
 
     fb_printc(active_terminal, '\n');
+}
+
+struct eaos_terminal* log_getterm(void) {
+    return active_terminal;
+}
+
+void kprintf(char *str, ...) {
 }

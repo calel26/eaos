@@ -1,5 +1,9 @@
 #include "cpu/idt.h"
 #include "eaos.h"
+#include "hw/keyboard.h"
+#include "hw/timer.h"
+#include "io.h"
+#include "irq.h"
 #include "limine.h"
 #include "framebuffer.h"
 #include "log.h"
@@ -15,8 +19,9 @@ static volatile LIMINE_REQUESTS_END_MARKER;
 __attribute__((used, section(".requests")))
 static volatile LIMINE_BASE_REVISION(2);
 
-void div_by_zero_test();
-void alloc_test();
+void div_by_zero_test(void);
+void alloc_test(void);
+void do_absolutely_nothing(void);
 
 void start(void) {
     struct eaos_terminal term = {
@@ -41,15 +46,40 @@ void start(void) {
     // div_by_zero_test();
     alloc_test();
 
-    kpanic("no tasks left to do");
+    kbd_init();
+    timer_init();
+
+    init_pic();
+
+    fb_printc(&term, '\n');
+    kinfo(" *  Done  * ");
+    spin();
 }
 
-void div_by_zero_test() {
-    kerr("dividing by zero to ensure that the div/0 handler works!");
+// Courtesy of Daniel Adibi (Adibi Productions® Coding™)
+void do_absolutely_nothing(void) {
+    // this actually hard resets the system,
+    // probably because I don't have float priviliges yet.
+    u64 lawsmat_sudios = 3; 
+    u64 final_result = 2;
+    if ((lawsmat_sudios-2)*(3*3^2-2)+(657898765432457%(2+2)) > 0){
+        final_result += lawsmat_sudios / final_result;
+        for (u32 i = 1; i <= 100000; i++) {
+            for (u32 j = 2; j <= 100000; j++){
+                volatile u8 adibus_number = 0 + 1;
+                0;
+                1;
+            }
+        }
+    }
+}
+
+void div_by_zero_test(void) {
+    kwarn("dividing by zero to ensure that the div/0 handler works!");
 
     volatile u8 a = 59;
     volatile u8 b = 0;
-    volatile u8 c = a / b;
+    volatile u8 _c = a / b;
 
     kwarn("resuming after div by zero");
 }
@@ -61,7 +91,7 @@ void div_by_zero_test() {
 #define MEMTEST_PASS "Memtest passed! All numbers were " XSTR(MEMTEST_VALIDATION_NUMBER)
 #define MEMTEST_FAIL "Memtest failed! Not all numbers were " XSTR(MEMTEST_VALIDATION_NUMBER) ". See output above."
 
-void alloc_test() {
+void alloc_test(void) {
     kinfo("allocating memory!");
     void* page = kalloc(MEMTEST_PAGES);
 

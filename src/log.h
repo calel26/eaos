@@ -2,6 +2,10 @@
 
 #include "framebuffer.h"
 
+// ascii escape code
+#define T_ESC "\x1b"
+#define T_COLOR(color) T_ESC "[c(" color ")"
+
 struct log_level {
     char *name;
     u32 color;
@@ -17,3 +21,6 @@ void kpanic(char *str);
 void print_number(u64 value);
 
 void log_setterm(struct eaos_terminal *term);
+struct eaos_terminal* log_getterm(void);
+
+void kprintf(char *str, ...);

@@ -25,6 +25,8 @@ struct pmm {
 
 struct pmm pmm_status;
 
+usize total_memory = 0;
+
 void init_pmm(void) {
     kinfo("Initializing kernel physical memory allocator...");
     if(memmap.response == null) {
@@ -34,18 +36,26 @@ void init_pmm(void) {
     struct limine_memmap_response *mm = memmap.response;
 
     struct limine_memmap_entry *largest_block = null;
-    for(usize e = 0; e < mm->entry_count; e++) {
+
+    for (usize e = 0; e < mm->entry_count; e++) {
         struct limine_memmap_entry *en = mm->entries[e];
         if(en->type != LIMINE_MEMMAP_USABLE) continue;
         if(largest_block == null || en->length > largest_block->length)
             largest_block = en;
+        total_memory += en->length;
     }
+
     if (largest_block == null) {
         kpanic("couldn't find any available memory?");
     }
 
+    kinfo("Detected available memory:");
+    print_number(total_memory);
+
     pmm_status.end = (void *) (largest_block->base + largest_block->length);
     pmm_status.head = (void *) largest_block->base;
+    // pmm_status.head = (void *) hhdm_request.response->offset;
+    // pmm_status.end = (void *) hhdm_request.response->offset + total_memory;
 }
 
 void* kalloc(u32 pages) {
@@ -61,3 +71,7 @@ void* kalloc(u32 pages) {
 void kfree(void *ptr) {
     kwarn("free not implemented yet!");
 };
+
+usize get_total_memory(void) {
+    return total_memory;
+}

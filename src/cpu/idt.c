@@ -1,5 +1,6 @@
 #include "idt.h"
 #include "framebuffer.h"
+#include "irq.h"
 #include "log.h"
 #include "eaos.h"
 #include "mem/util.h"
@@ -40,37 +41,6 @@ void set_idt_entry(u8 vector, void *isr, u8 flags, struct idt_entry *idt) {
     idt[vector].reserved = 0;
 }
 
-// #define intr __attribute__((interrupt))
-// ^ this causes everything to break!
-#define intr
-
-intr void div_by_zero(struct interrupt_frame* stack_frame) {
-    kpanic("division by zero");
-};
-intr void single_step_interrupt(struct interrupt_frame* stack_frame) {};
-intr void nmi_error(struct interrupt_frame *stack_frame) {};
-intr void breakpoint(struct interrupt_frame *stack_frame) {};
-intr void overflow(struct interrupt_frame *stack_frame) {};
-intr void bound_range_exceeded(struct interrupt_frame *stack_frame) {};
-intr void invalid_opcode(struct interrupt_frame *stack_frame) {};
-intr void coprocessor_not_available(struct interrupt_frame *stack_frame) {};
-intr void double_fault(struct interrupt_frame *stack_frame) {
-    kpanic("there was a double fault");
-}
-intr void invalid_tss(struct interrupt_frame *stack_frame) {};
-intr void segment_invalid(struct interrupt_frame *stack_frame) {};
-intr void stack_segment_fault(struct interrupt_frame *stack_frame) {};
-intr void general_protection_fault(struct interrupt_frame *stack_frame) {};
-intr void page_fault(struct interrupt_frame *stack_frame) {
-    kpanic("page fault!");
-};
-intr void x87_float_exception(struct interrupt_frame *stack_frame) {};
-intr void alignment_check(struct interrupt_frame *stack_frame) {};
-intr void machine_check(struct interrupt_frame *stack_frame) {};
-intr void SIMD_float_exception(struct interrupt_frame *stack_frame) {};
-intr void virtualization_exception(struct interrupt_frame *stack_frame) {};
-intr void control_protection_exception(struct interrupt_frame *stack_frame) {};
-
 struct idt_entry idt[256];
 
 void setup_idt(void) {
@@ -82,28 +52,28 @@ void setup_idt(void) {
     kinfo("setting up IDT");
 
     void* handlers[32] = {
-        div_by_zero,
-        single_step_interrupt,
-        nmi_error,
-        breakpoint,
-        overflow,
-        bound_range_exceeded,
-        invalid_opcode,
-        coprocessor_not_available,
-        double_fault,
+        div_by_zero_entry,
+        single_step_interrupt_entry,
+        nmi_error_entry,
+        breakpoint_entry,
+        overflow_entry,
+        bound_range_exceeded_entry,
+        invalid_opcode_entry,
+        coprocessor_not_available_entry,
+        double_fault_entry,
         null, // older thing
-        invalid_tss,
-        segment_invalid,
-        stack_segment_fault,
-        general_protection_fault,
-        page_fault,
+        invalid_tss_entry,
+        segment_invalid_entry,
+        stack_segment_fault_entry,
+        general_protection_fault_entry,
+        page_fault_entry,
         null, // RESERVED
-        x87_float_exception,
-        alignment_check,
-        machine_check,
-        SIMD_float_exception,
-        virtualization_exception,
-        control_protection_exception,
+        x87_float_exception_entry,
+        alignment_check_entry,
+        machine_check_entry,
+        SIMD_float_exception_entry,
+        virtualization_exception_entry,
+        control_protection_exception_entry,
         // all else = null
     };
 
@@ -123,4 +93,10 @@ void setup_idt(void) {
     __asm__ volatile ("sti"); // enable interrupts
 
     kinfo("IDT loaded");
+}
+
+// more public interface
+void idt_set_interrupt_handler(u8 vector, void *isr, u8 ring_level) {
+    u8 flags = (1<<7) + (ring_level<<4) + 0b1110; // 1110 = interrupt gate
+    set_idt_entry(vector, isr, flags, idt);
 }
