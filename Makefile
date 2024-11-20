@@ -1,7 +1,7 @@
 # eaos build system
 
 version := 0.1.0
-limine_version := 8.0.13
+limine_version := 8.4.0
 
 ext_dir := ext
 build_dir := build
