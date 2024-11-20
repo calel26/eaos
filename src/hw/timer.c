@@ -5,6 +5,15 @@
 
 INTR(timer_handle)
 
+struct timer_demo {
+    usize tick;
+    usize line;
+};
+
+static struct timer_demo demo = {
+    .tick = 0
+};
+
 void timer_init(void) {
     kinfo("setting up PIC timer!");
 
@@ -12,6 +21,38 @@ void timer_init(void) {
 }
 
 void timer_handle(void) {
-    fb_printc(log_getterm(), '*');
+    // step the demo
+    struct eaos_terminal *term = log_getterm();
+    if (demo.tick == 0) {
+        demo.line = term->line;
+    }
+
+    char stars[] = "*****************";
+
+    usize old_line = term->line;
+    usize old_x = term->cursor_x;
+    usize old_color = term->active_color;
+    term->line = demo.line;
+    term->cursor_x = 20;
+
+    for (usize i = 0; i < sizeof(stars) - 1; i++) {
+        if (demo.tick % sizeof(stars) - 1 == i) {
+            term->active_color = 0x03a9fc;
+        } else {
+            term->active_color = 0x7d7d7d;
+        }
+        fb_printc(term, stars[i]);
+    }
+
+    term->line = old_line;
+    term->cursor_x = old_x;
+    term->active_color = old_color;
+
+    if (demo.tick == 0) {
+        fb_printc(term, '\n');
+    }
+
+    demo.tick ++;
+
     pic_eoi(0x00);
 }
