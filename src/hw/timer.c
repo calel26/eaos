@@ -7,7 +7,7 @@ INTR(timer_handle)
 
 struct timer_demo {
     usize tick;
-    usize line;
+    usize line, x;
 };
 
 static struct timer_demo demo = {
@@ -24,7 +24,9 @@ void timer_handle(void) {
     // step the demo
     struct eaos_terminal *term = log_getterm();
     if (demo.tick == 0) {
+        fb_print(term, "Timer Demo: ");
         demo.line = term->line;
+        demo.x = term->cursor_x;
     }
 
     char stars[] = "*****************";
@@ -33,7 +35,7 @@ void timer_handle(void) {
     usize old_x = term->cursor_x;
     usize old_color = term->active_color;
     term->line = demo.line;
-    term->cursor_x = 20;
+    term->cursor_x = demo.x;
 
     for (usize i = 0; i < sizeof(stars) - 1; i++) {
         if (demo.tick % sizeof(stars) - 1 == i) {
