@@ -6,7 +6,6 @@ global %1_entry
 %1_entry:
     cli
 
-    ; Call the C handler passed as a parameter
     ; push registers to stack
     push rax
     push rbx

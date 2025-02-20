@@ -6,6 +6,7 @@
 
 void init_pmm(void);
 void *kalloc(u32 pages);
+void *kcalloc(u32 pages);
 void kfree(void *ptr);
 
 usize get_total_memory(void);

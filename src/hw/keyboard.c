@@ -1,7 +1,25 @@
 #include "hw/keyboard.h"
+#include "framebuffer.h"
 #include "io.h"
 #include "irq.h"
 #include "log.h"
+
+static const char keymap[128] = {
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
+    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',
+    0, '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,
+    '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
+};
+
+struct keyboard_demo {
+    bool enabled;
+    u8 lastEvent;
+    usize line, x;
+};
+
+struct keyboard_demo demo;
 
 INTR(kbd_handle);
 
@@ -9,13 +27,68 @@ void kbd_init(void) {
     kinfo("setting up keyboard...");
     
     irq_handle(0x01, kbd_handle_entry);
+    // set up keyboard demo:
+
+    kinfo("keyboard demo: ");
+    demo.line = log_getterm()->line;
+    fb_print(log_getterm(), "> ");
+    demo.x = log_getterm()->cursor_x;
+    fb_print(log_getterm(), "* press a key *\n");
+
+    demo.enabled = true;
+}
+
+char entry_space[32];
+u8 i = 0;
+
+void render_entry() {
+    struct eaos_terminal* term = log_getterm();
+    usize x = term->cursor_x;
+    fb_print(term, "                                                       ");
+    term->cursor_x = x;
+    for (u8 j = 0; j < i; j++) {
+        fb_printc(term, entry_space[j]);
+    }
 }
 
 void kbd_handle(void) {
-    kinfo("letter!");
+    if (!demo.enabled) {
+        (void) inb(0x60);
+        pic_eoi(0x01);
+        return;
+    }
+    struct eaos_terminal* term = log_getterm();
 
-    u8 cha = inb(0x60);
-    print_number(cha);
+    u8 ev = inb(0x60);
+    demo.lastEvent = ev;
+
+    usize old_line = term->line;
+    usize old_x = term->cursor_x;
+    usize old_color = term->active_color;
+
+    term->active_color = 0xFFFFFF;
+    term->cursor_x = demo.x;
+    term->line = demo.line;
+
+    if (i >= sizeof(entry_space)) {
+        i = 0;
+    }
+
+    if (ev & 0x80) {
+        // key release
+        // u8 index = ev & 0x7F;
+    } else {
+        u8 index = ev;
+        char key = keymap[index];
+        entry_space[i] = key;
+        ++i;
+    }
+
+    render_entry();
+
+    term->line = old_line;
+    term->cursor_x = old_x;
+    term->active_color = old_color;
 
     pic_eoi(0x01);
 }

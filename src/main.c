@@ -2,13 +2,13 @@
 #include "eaos.h"
 #include "hw/keyboard.h"
 #include "hw/timer.h"
-#include "io.h"
 #include "irq.h"
 #include "limine.h"
 #include "framebuffer.h"
 #include "log.h"
 #include "mem/phys.h"
 #include "mem/util.h"
+#include "proc/proc.h"
 
 __attribute__((used, section(".requests_start_marker")))
 static volatile LIMINE_REQUESTS_START_MARKER;
@@ -53,6 +53,10 @@ void start(void) {
 
     fb_printc(&term, '\n');
     kinfo(" *  Startup Complete!  * ");
+
+    kinfo("Making a process...");
+    mkproc("init", "/sbin/init");
+
     spin();
 }
 

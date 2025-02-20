@@ -20,6 +20,11 @@ void kpanic(char *str);
 
 void print_number(u64 value);
 
+struct stringified_number {
+    char data[17];
+};
+struct stringified_number number_to_string(u64 value);
+
 void log_setterm(struct eaos_terminal *term);
 struct eaos_terminal* log_getterm(void);
 

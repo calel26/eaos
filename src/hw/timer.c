@@ -6,6 +6,7 @@
 INTR(timer_handle)
 
 struct timer_demo {
+    bool enabled;
     usize tick;
     usize line, x;
 };
@@ -21,6 +22,9 @@ void timer_init(void) {
 }
 
 void timer_handle(void) {
+    demo.enabled = true;
+    if (!demo.enabled) return;
+
     // step the demo
     struct eaos_terminal *term = log_getterm();
     if (demo.tick == 0) {

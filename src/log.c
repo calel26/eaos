@@ -70,23 +70,22 @@ void kpanic(char *str) {
 
 static char hexalphabet[16] = "01234567890abcef";
 
-void print_number(u64 value) {
-    char buffer[16];
+struct stringified_number number_to_string(u64 value) {
+    struct stringified_number n = {};
     
-    // Iterate over each nibble (4 bits) of the 64-bit value (16 hex digits in total)
     for (int i = 15; i >= 0; i--) {
-        buffer[i] = hexalphabet[value & 0xF];  // Extract the last 4 bits (1 hex digit)
-        value >>= 4;  // Shift the value 4 bits to the right
+        n.data[i] = hexalphabet[value & 0xF];
+        value >>= 4;
     }
 
-    fb_print(active_terminal, "0x");
+    n.data[16] = '\0';
+    return n;
+}
 
-    // Print each hex character
-    for (int i = 0; i < 16; i++) {
-        fb_printc(active_terminal, buffer[i]);
-    }
-
-    fb_printc(active_terminal, '\n');
+void print_number(u64 value) {
+    fb_print(log_getterm(), "0x");
+    fb_print(log_getterm(), number_to_string(value).data);
+    fb_printc(log_getterm(), '\n');
 }
 
 struct eaos_terminal* log_getterm(void) {

@@ -2,6 +2,7 @@
 #include "log.h"
 #include "limine.h"
 #include "eaos.h"
+#include "util.h"
 
 __attribute__((used, section(".requests")))
 struct limine_memmap_request memmap = {
@@ -67,6 +68,13 @@ void* kalloc(u32 pages) {
 
     return head + hhdm_request.response->offset;
 };
+
+void* kcalloc(u32 pages) {
+    void* ptr = kalloc(pages);
+    // zero the memory
+    memset(ptr, 0, MEM_PAGE_SIZE * pages);
+    return ptr;
+}
 
 void kfree(void *ptr) {
     kwarn("free not implemented yet!");
