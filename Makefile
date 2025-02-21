@@ -1,7 +1,7 @@
 # eaos build system
 
 version := 0.1.1
-limine_version := 8.4.0
+limine_version := 9.0.0
 
 ext_dir := ext
 build_dir := build
@@ -109,13 +109,13 @@ $(build_dir)/$(iso_file): $(build_dir) $(ext_dir)/limine/limine-$(limine_version
 
 	$(ext_dir)/limine/limine-$(limine_version)/bin/limine bios-install $(build_dir)/$(iso_file)
 
-$(ext_dir)/limine:
+$(ext_dir)/limine/limine-$(limine_version):
 	# download limine
 	mkdir -p $(ext_dir)/limine
 	curl -L https://github.com/limine-bootloader/limine/releases/download/v$(limine_version)/limine-$(limine_version).tar.xz -o ext/limine/limine-$(limine_version).tar.xz 
 	tar xf $(ext_dir)/limine/limine-$(limine_version).tar.xz -C $(ext_dir)/limine/
 
-$(ext_dir)/limine/limine-$(limine_version)/bin: $(ext_dir)/limine
+$(ext_dir)/limine/limine-$(limine_version)/bin: $(ext_dir)/limine/limine-$(limine_version)
 	# build limine!
 	cd $(ext_dir)/limine/limine-$(limine_version); \
 		./configure --enable-uefi-x86-64 --enable-uefi-cd \
