@@ -13,13 +13,22 @@ static const char keymap[128] = {
     '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
 
+static const char shift_keymap[128] = {
+    0,  27, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '\b',
+    '\t', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\n',
+    0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~',
+    0, '|', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', 0,
+    '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
+};
+
 struct keyboard_demo {
     bool enabled;
-    u8 lastEvent;
+    u8 last_event;
     usize line, x;
 };
 
-struct keyboard_demo demo;
+static struct keyboard_demo demo;
 
 INTR(kbd_handle);
 
@@ -38,8 +47,9 @@ void kbd_init(void) {
     demo.enabled = true;
 }
 
-char entry_space[32];
-u8 i = 0;
+static char entry_space[32];
+static u8 i = 0;
+static bool shift = false;
 
 void render_entry() {
     struct eaos_terminal* term = log_getterm();
@@ -54,13 +64,21 @@ void render_entry() {
 void kbd_handle(void) {
     if (!demo.enabled) {
         (void) inb(0x60);
-        pic_eoi(0x01);
-        return;
+        goto skip_render;
     }
     struct eaos_terminal* term = log_getterm();
 
     u8 ev = inb(0x60);
-    demo.lastEvent = ev;
+    demo.last_event = ev;
+
+    if (ev == 0x2A || ev == 0x36) {
+        // shift
+        shift = true;
+        goto skip_render;
+    } else if (ev == 0xAA || ev == 0xB6) {
+        shift = false;
+        goto skip_render;
+    }
 
     usize old_line = term->line;
     usize old_x = term->cursor_x;
@@ -80,8 +98,17 @@ void kbd_handle(void) {
     } else {
         u8 index = ev;
         char key = keymap[index];
-        entry_space[i] = key;
-        ++i;
+        if (key == '\n') {
+            // reset
+            i = 0;
+        } else if (key == '\b') {
+            // delete
+            if (i > 0) { --i; }
+        } else {
+            if (shift) key = shift_keymap[index];
+            entry_space[i] = key;
+            ++i;
+        }
     }
 
     render_entry();
@@ -90,6 +117,7 @@ void kbd_handle(void) {
     term->cursor_x = old_x;
     term->active_color = old_color;
 
+skip_render:
     pic_eoi(0x01);
 }
 

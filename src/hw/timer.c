@@ -12,17 +12,18 @@ struct timer_demo {
 };
 
 static struct timer_demo demo = {
-    .tick = 0
+    .tick = 0,
+    .enabled = false
 };
 
 void timer_init(void) {
     kinfo("setting up PIC timer!");
 
     irq_handle(0x00, timer_handle_entry);
+    demo.enabled = true;
 }
 
 void timer_handle(void) {
-    demo.enabled = true;
     if (!demo.enabled) return;
 
     // step the demo
@@ -58,7 +59,7 @@ void timer_handle(void) {
         fb_printc(term, '\n');
     }
 
-    demo.tick ++;
+    ++ demo.tick;
 
     pic_eoi(0x00);
 }
