@@ -46,7 +46,7 @@ void fb_printc(struct eaos_terminal *terminal, char c) {
 
     volatile u32* fb = terminal->framebuffer->address;
     u32 width = terminal->framebuffer->width;
-    u32 height = terminal->framebuffer->height;
+    // u32 height = terminal->framebuffer->height;
 
     for (int y = 0; y < glyph_size; y++) {
         u8 row = glyph[y];
@@ -68,4 +68,10 @@ void fb_printc(struct eaos_terminal *terminal, char c) {
 
 struct limine_framebuffer* fb_get_framebuffer() {
     return framebuffer_request.response->framebuffers[0];
+}
+
+void fb_set_px(struct eaos_terminal *term, u32 x, u32 y, u32 color) {
+    u64 width = term->framebuffer->width;
+    volatile u32* fb = term->framebuffer->address;
+    fb[width * y + x] = color;
 }

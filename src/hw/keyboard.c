@@ -4,6 +4,8 @@
 #include "irq.h"
 #include "log.h"
 
+INTR(kbd_handle);
+
 static const char keymap[128] = {
     0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
     '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
@@ -29,8 +31,6 @@ struct keyboard_demo {
 };
 
 static struct keyboard_demo demo;
-
-INTR(kbd_handle);
 
 void kbd_init(void) {
     kinfo("setting up keyboard...");

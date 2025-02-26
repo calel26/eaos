@@ -29,13 +29,12 @@
 
 void pic_cmd(u8 main, u8 secondary) {
     outb(PIC1_COMMAND, main);
+    outb(PIC2_COMMAND, secondary);
     io_wait();
-    outb(PIC2_DATA, secondary);
 }
 
 void pic_data(u8 main, u8 secondary) {
     outb(PIC1_DATA, main);
-    io_wait();
     outb(PIC2_DATA, secondary);
     io_wait();
 }
@@ -51,11 +50,22 @@ void init_pic() {
     pic_data(0x20, 0x28);
 
     // ICW3 tells the secondary PIC about the primary and vice versa
-    pic_data(0b0000100, 2);
+    pic_data(4, 2);
 
-    // ICW4 tells the PIC what interrupts to actually forward.
+    pic_data(ICW4_8086, ICW4_8086);
+
+    // now we the PIC what interrupts to actually forward.
     // Only interested in 0x00, the timer, 0x01, the keyboard, and 0x02, the secondary PIC
-    pic_data(0b11111000, 0xFF);
+    // On the second PIC, we want 0x0C (the fourth relatively), the mouse
+    pic_data(0b11111000, 0b11101111);
+
+    // enables RTC (int 0x08) for testing
+    // __asm__ volatile ("cli");
+    // outb(0x70, 0x8B);
+    // u8 prev = inb(0x71);
+    // outb(0x70, 0x8B);
+    // outb(0x71, prev | 0x40);
+    // __asm__ volatile ("sti");
 
     // the PIC should be done!
     kinfo("PIC setup complete");

@@ -1,4 +1,4 @@
 #include "event.h"
 #include "config.h"
 
-struct proc_event_subscription subscription[event_count][MAX_EVENT_SUBSCRIBERS];
+static struct ev_subscription subscriptions[event_count][MAX_EVENT_SUBSCRIBERS];

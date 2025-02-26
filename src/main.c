@@ -2,6 +2,7 @@
 #include "eaos.h"
 #include "hw/keyboard.h"
 #include "hw/timer.h"
+#include "hw/mouse.h"
 #include "irq.h"
 #include "limine.h"
 #include "framebuffer.h"
@@ -47,6 +48,7 @@ void start(void) {
 
     kbd_init();
     timer_init();
+    mouse_init();
 
     init_pic();
     // div_by_zero_test();
@@ -58,24 +60,6 @@ void start(void) {
     mkproc("init", "/sbin/init");
 
     spin();
-}
-
-// Courtesy of Daniel Adibi (Adibi Productions® Coding™)
-void do_absolutely_nothing(void) {
-    // this actually hard resets the system,
-    // probably because I don't have float priviliges yet.
-    u64 lawsmat_sudios = 3; 
-    u64 final_result = 2;
-    if ((lawsmat_sudios-2)*(3*3^2-2)+(657898765432457%(2+2)) > 0){
-        final_result += lawsmat_sudios / final_result;
-        for (u32 i = 1; i <= 100000; i++) {
-            for (u32 j = 2; j <= 100000; j++){
-                volatile u8 adibus_number = 0 + 1;
-                0;
-                1;
-            }
-        }
-    }
 }
 
 void div_by_zero_test(void) {

@@ -2,6 +2,7 @@
 #include "framebuffer.h"
 #include "irq.h"
 #include "log.h"
+#include "mouse.h"
 
 INTR(timer_handle)
 
@@ -24,6 +25,10 @@ void timer_init(void) {
 }
 
 void timer_handle(void) {
+    // if (!is_mouse_configured()) {
+    //     mouse_init();
+    // }
+
     if (!demo.enabled) return;
 
     // step the demo

@@ -14,3 +14,5 @@ void fb_printc(struct eaos_terminal* terminal, char c);
 void fb_print(struct eaos_terminal* terminal, char* str);
 
 struct limine_framebuffer* fb_get_framebuffer();
+
+void fb_set_px(struct eaos_terminal* term, u32 x, u32 y, u32 color);
