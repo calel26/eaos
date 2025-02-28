@@ -1,6 +1,7 @@
 #include "log.h"
 #include "eaos.h"
 #include "framebuffer.h"
+#include "phys.h"
 #include <stdarg.h>
 
 struct eaos_terminal *active_terminal;
@@ -92,5 +93,54 @@ struct eaos_terminal* log_getterm(void) {
     return active_terminal;
 }
 
-void kprintf(char *str, ...) {
+// crap but it works
+// supports:
+//  - %% -> %
+//  - %s -> [string]
+//  - %d -> [u64 value]
+char* ksprintf(char *fmt, ...) {
+    char* buf = kalloc(1);
+    usize buf_i = 0;
+
+    va_list args;
+    va_start(args);
+    for (usize i = 0 ;; i++) {
+        if (fmt[i] == '\0') {
+            buf[buf_i++] = '\0';
+            break;
+        } if (fmt[i] == '%') {
+            switch(fmt[i + 1]) {
+            case '%':
+                buf[buf_i++] = '%';
+                i += 1;
+                break;
+            case 's':
+                char* s = va_arg(args, char*);
+                for (usize j = 0 ;; j++) {
+                    if (s[j] == '\0') {
+                        break;
+                    }
+                    buf[buf_i++] = s[j];
+                }
+                i += 1;
+                break;
+            case 'd':
+                u64 n = va_arg(args, u64);
+                struct stringified_number ns = number_to_string(n);
+                for (usize j = 0; j < sizeof(ns.data) - 1; j++) {
+                    buf[buf_i++] = ns.data[j];
+                }
+                i += 1;
+                break;
+            default:
+                kpanic("bad fmt char");
+                fb_printc(log_getterm(), fmt[i + 1]);
+            }
+        } else {
+            buf[buf_i++] = fmt[i];
+        }
+    }
+    va_end(args);
+
+    return buf;
 }

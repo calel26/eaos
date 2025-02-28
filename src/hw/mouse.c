@@ -1,10 +1,10 @@
 #include "mouse.h"
 #include "eaos.h"
-#include "framebuffer.h"
 #include "io.h"
 #include "irq.h"
 #include "log.h"
 #include "mem/util.h"
+#include "ui/mouse.h"
 
 #define MOUSE_PIC 12
 #define LEFT_CLICK 1 << 0
@@ -74,8 +74,8 @@ struct cursor {
 };
 
 static struct cursor cursor = {
-    .x = 20,
-    .y = 20
+    .x = 200,
+    .y = 200
 };
 
 // each mouse event generates 3 bytes
@@ -96,8 +96,6 @@ static void handle_full_packet(u8 info, i8 x, i8 y) {
     bool l = info & LEFT_CLICK;
     bool r = info & RIGHT_CLICK;
     bool mid = info & MIDDLE_CLICK;
-    // if (info & X_NEG) x *= -1;
-    // if (info & Y_NEG) y *= -1;
 
     x = x - ((info << 4) & 0x100);
 	y = y - ((info << 3) & 0x100);
@@ -110,7 +108,8 @@ static void handle_full_packet(u8 info, i8 x, i8 y) {
 
     cursor.x += x;
     cursor.y -= y;
-    fb_set_px(log_getterm(), cursor.x, cursor.y, colors[color_index]);
+    // fb_set_px(log_getterm(), cursor.x, cursor.y, colors[color_index]);
+    draw_mouse(cursor.x, cursor.y);
 }
 
 void mouse_handle(void) {

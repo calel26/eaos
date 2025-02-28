@@ -20,9 +20,9 @@ static const u8 font[] = {
 
 const u32 fb_margin = 5;
 
-void load_font(struct psf1* font) {
-    bool has_table = (font->modes & 0x02) != 0 || (font->modes & 0x04) != 0;
-}
+// void load_font(struct psf1* font) {
+//     bool has_table = (font->modes & 0x02) != 0 || (font->modes & 0x04) != 0;
+// }
 
 void fb_print(struct eaos_terminal *terminal, char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
@@ -66,11 +66,11 @@ void fb_printc(struct eaos_terminal *terminal, char c) {
     terminal->cursor_x += glyph_width;
 }
 
-struct limine_framebuffer* fb_get_framebuffer() {
+inline struct limine_framebuffer* fb_get_framebuffer() {
     return framebuffer_request.response->framebuffers[0];
 }
 
-void fb_set_px(struct eaos_terminal *term, u32 x, u32 y, u32 color) {
+inline void fb_set_px(struct eaos_terminal *term, u32 x, u32 y, u32 color) {
     u64 width = term->framebuffer->width;
     volatile u32* fb = term->framebuffer->address;
     fb[width * y + x] = color;

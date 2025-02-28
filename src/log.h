@@ -28,4 +28,5 @@ struct stringified_number number_to_string(u64 value);
 void log_setterm(struct eaos_terminal *term);
 struct eaos_terminal* log_getterm(void);
 
-void kprintf(char *str, ...);
+// void kprintf(char *str, ...);
+char* ksprintf(char *str, ...);

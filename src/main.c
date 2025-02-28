@@ -59,6 +59,10 @@ void start(void) {
     kinfo("Making a process...");
     mkproc("init", "/sbin/init");
 
+    kinfo("testing printf");
+    kinfo(ksprintf("hugh mungus is %s %d%% big.", "world", (u64) 29));
+    // kinfo(ksprintf("hah %d", (u64) 29));
+
     spin();
 }
 
