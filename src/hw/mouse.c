@@ -3,8 +3,7 @@
 #include "io.h"
 #include "irq.h"
 #include "log.h"
-#include "mem/util.h"
-#include "ui/mouse.h"
+#include "ui/ui.h"
 
 #define MOUSE_PIC 12
 #define LEFT_CLICK 1 << 0
@@ -69,11 +68,7 @@ bool is_mouse_configured() {
     return mouse_configured;
 }
 
-struct cursor {
-    usize x, y;
-};
-
-static struct cursor cursor = {
+static struct mouse cursor = {
     .x = 200,
     .y = 200
 };
@@ -82,34 +77,22 @@ static struct cursor cursor = {
 static u8 packet[3] = {0};
 static u8 packet_index = 0;
 
-static u32 colors[] = {
-    0xFF0000,
-    0x00FF00,
-    0x0000FF,
-};
-static u8 color_index = 0;
-
 static void handle_full_packet(u8 info, i8 x, i8 y) {
     // check for invalid data...
     if (info & X_OFLOW || info & Y_OFLOW) return;
 
-    bool l = info & LEFT_CLICK;
-    bool r = info & RIGHT_CLICK;
-    bool mid = info & MIDDLE_CLICK;
+    cursor.l = info & LEFT_CLICK;
+    cursor.r = info & RIGHT_CLICK;
+    cursor.m = info & MIDDLE_CLICK;
 
     x = x - ((info << 4) & 0x100);
 	y = y - ((info << 3) & 0x100);
 
-    if (l) {
-        color_index = 1;
-    } else if (r) {
-        color_index = 2;
-    }
-
     cursor.x += x;
     cursor.y -= y;
-    // fb_set_px(log_getterm(), cursor.x, cursor.y, colors[color_index]);
-    draw_mouse(cursor.x, cursor.y);
+
+    // redraw the UI
+    redraw();
 }
 
 void mouse_handle(void) {
@@ -129,4 +112,8 @@ void mouse_handle(void) {
 
 done:
     pic_eoi(MOUSE_PIC);
+}
+
+struct mouse *get_mouse() {
+    return &cursor;
 }

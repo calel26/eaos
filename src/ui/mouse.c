@@ -2,6 +2,7 @@
 #include "framebuffer.h"
 #include "log.h"
 
+// yes I drew this by hand in 1's and 0's
 static u16 bitmap[16] = {
     0b1100000000000000,
     0b1111000000000000,
@@ -37,11 +38,8 @@ void draw_mouse(u32 x, u32 y) {
     for (u32 bx = 0; bx < 16; bx++) {
         for (u32 by = 0; by < 16; by++) {
             bool off = ((bitmap[by] >> (16-1-bx)) & 0b1) == 0;
-            u32 color = 0xFFFFFF;
-            if (off) {
-                color = 0;
-            };
-            fb_set_px(term, bx + x, by + y, color);
+            if (off) continue;
+            fb_set_px(term, bx + x, by + y, 0xFFFFFF);
         }
     }
     last_x = x;

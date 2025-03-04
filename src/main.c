@@ -4,6 +4,7 @@
 #include "hw/timer.h"
 #include "hw/mouse.h"
 #include "irq.h"
+#include "kui.h"
 #include "limine.h"
 #include "framebuffer.h"
 #include "log.h"
@@ -59,9 +60,8 @@ void start(void) {
     kinfo("Making a process...");
     mkproc("init", "/sbin/init");
 
-    kinfo("testing printf");
-    kinfo(ksprintf("hugh mungus is %s %d%% big.", "world", (u64) 29));
-    // kinfo(ksprintf("hah %d", (u64) 29));
+    kinfo("starting KUI...");
+    start_kui();
 
     spin();
 }

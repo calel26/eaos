@@ -2,6 +2,7 @@
 
 #include "eaos.h"
 #include "framebuffer.h"
+#include "hw/mouse.h"
 
 struct ui_bbox {
     u32 x, y;
@@ -9,8 +10,8 @@ struct ui_bbox {
 };
 
 struct ui_state {
-    bool mouse_over, mouse_l, mouse_r, mouse_mid;
-    u32 mouse_x, mouse_y;
+    struct mouse *mouse;
+    bool mouse_over;
     struct ui_elem *elem;
     struct eaos_terminal* term;
 };
@@ -21,3 +22,7 @@ struct ui_elem {
     struct ui_bbox bbox;
     void* conf;
 };
+
+void ui_draw(struct ui_elem *elem, struct ui_state *state);
+
+bool bbox_contains(const struct ui_bbox *bbox, u32 x, u32 y);

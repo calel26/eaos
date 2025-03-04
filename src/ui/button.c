@@ -1,11 +1,12 @@
 #include "ui/button.h"
+#include "framebuffer.h"
 #include "ui/element.h"
 
 static void render_button(struct ui_state *state) {
     struct ui_button_config *conf = state->elem->conf;
     struct ui_bbox bbox = state->elem->bbox;
-    if (state->mouse_l && state->mouse_over) {
-        conf->on_click();
+    if (state->mouse->l && state->mouse_over) {
+        conf->on_click(state);
     }
 
     bool hovering = state->mouse_over;
@@ -22,6 +23,14 @@ static void render_button(struct ui_state *state) {
     }
 
     // render text
+    u32 len = 0;
+    while (conf->text[len++] != '\0');
+    u32 y = bbox.y + (bbox.h / 2) - (16/2);
+    u32 x = bbox.x + (bbox.w / 2) - ((len*8)/2);
+    struct eaos_terminal t = *state->term;
+    t.line = (y - 5) / 16;
+    t.cursor_x = x - 5;
+    fb_print(&t, conf->text);
 }
 
 struct ui_elem ui_mk_button(struct ui_button_config *conf) {
