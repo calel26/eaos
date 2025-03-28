@@ -33,6 +33,8 @@ void redraw_all() {
 
     draw_mouse(m->x, m->y);
     finished_drawing = true;
+
+    fb_done(state.term);
 }
 
 void ui_add_elem(struct ui_elem *elem) {

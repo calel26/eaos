@@ -21,6 +21,8 @@ void kmsg(struct log_level *level, char *message) {
     active_terminal->active_color = original_color;
     fb_print(active_terminal, message);
     fb_printc(active_terminal, '\n');
+
+    fb_done(active_terminal);
 }
 
 struct log_level ll_info = {
@@ -52,6 +54,13 @@ void kerr(char *str) {
 
 // Panics with a message and then spins.
 void kpanic(char *str) {
+    // clear interrupts before spinning to prevent continuing from a panic
+    __asm__ volatile ( "cli" );
+
+    // emergency terminal mode
+    // active_terminal->line = 20;
+    active_terminal->fbmem = active_terminal->framebuffer->address;
+
     active_terminal->active_color = ll_error.color;
     fb_print(active_terminal, "\n !! KERNEL PANIC !!\n");
 
@@ -62,9 +71,6 @@ void kpanic(char *str) {
     fb_print(active_terminal, "Error message: ");
     active_terminal->active_color = 0xffffff;
     fb_print(active_terminal, str);
-
-    // clear interrupts before spinning to prevent continuing from a panic
-    __asm__ volatile ( "cli" );
 
     spin();
 }
@@ -94,6 +100,7 @@ struct eaos_terminal* log_getterm(void) {
 }
 
 // crap but it works
+//
 // supports:
 //  - %% -> %
 //  - %s -> [string]

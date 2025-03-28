@@ -1,4 +1,5 @@
 #include "hw/keyboard.h"
+#include "event.h"
 #include "framebuffer.h"
 #include "io.h"
 #include "irq.h"
@@ -61,6 +62,14 @@ void render_entry() {
     }
 }
 
+static bool was_keyup;
+static bool was_keydown;
+static char last_key;
+
+static bool keyboard_predicate(union ev_subscription_params *p) {
+    return (p->keyboard.keyup && was_keyup) || (p->keyboard.keydown && was_keydown);
+}
+
 void kbd_handle(void) {
     if (!demo.enabled) {
         (void) inb(0x60);
@@ -92,12 +101,19 @@ void kbd_handle(void) {
         i = 0;
     }
 
-    if (ev & 0x80) {
+    bool keyup = ev & 0x80;
+    u8 index = ev;
+    if (keyup) {
+        index &= 0x7F;
+    }
+
+    char key = keymap[index];
+    if (shift) key = shift_keymap[index];
+
+    if (keyup) {
         // key release
-        // u8 index = ev & 0x7F;
+        // no special handling in the demo.
     } else {
-        u8 index = ev;
-        char key = keymap[index];
         if (key == '\n') {
             // reset
             i = 0;
@@ -105,7 +121,6 @@ void kbd_handle(void) {
             // delete
             if (i > 0) { --i; }
         } else {
-            if (shift) key = shift_keymap[index];
             entry_space[i] = key;
             ++i;
         }
@@ -117,11 +132,17 @@ void kbd_handle(void) {
     term->cursor_x = old_x;
     term->active_color = old_color;
 
+    // send to the event bus!
+    was_keyup = keyup;
+    was_keydown = !keyup;
+    last_key = key;
+
+    handle(ev_keyboard, keyboard_predicate);
+
 skip_render:
     pic_eoi(0x01);
 }
 
 char kbd_getchar(void) {
-    kwarn("todo: kbd_getchar()");
-    return '?';
+    return last_key;
 }

@@ -30,8 +30,10 @@ void start(void) {
         .line = 0,
         .active_color = 0xffffff,
         .cursor_x = 0,
-        .framebuffer = fb_get_framebuffer()
+        .framebuffer = fb_get_framebuffer(),
     };
+    // term.fbmem = fb_allocate_buffer(term.framebuffer);
+    term.fbmem = term.framebuffer->address;
 
     fb_print(&term, "Welcome to ");
     term.active_color = 0xc663ff;
@@ -57,13 +59,13 @@ void start(void) {
     fb_printc(&term, '\n');
     kinfo(" *  Startup Complete!  * ");
 
-    kinfo("Making a process...");
-    mkproc("init", "/sbin/init");
-
-    kinfo("starting KUI...");
     start_kui();
 
-    spin();
+    // wait to start init
+    for(;;) {
+        if (should_start_init()) placeholder_init();
+        __asm__("hlt");
+    }
 }
 
 void div_by_zero_test(void) {

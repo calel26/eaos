@@ -1,7 +1,6 @@
 #pragma once
 
 #include "eaos.h"
-#include "proc.h"
 
 enum ev_type {
     // this event will never fire
@@ -24,14 +23,14 @@ struct ev_custom_config {
     usize file;
 };
 struct ev_timer_config {
-    bool once;
     usize miliseconds;
 };
 struct ev_keyboard_config {
     bool keydown, keyup;
 };
 struct ev_mouse_config {
-    bool moose;
+    // TODO: flesh this out more
+    bool click;
 };
 
 union ev_subscription_params {
@@ -45,14 +44,11 @@ union ev_subscription_params {
 enum ev_subscription_type {
     // empty
     ev_st_empty,
-    // an in-kernel hook
-    ev_st_hook,
     // wakes a process
     ev_st_process
 };
 
 union ev_subscription_trigger {
-    struct context* hook;
     usize proc;
 };
 
@@ -62,3 +58,6 @@ struct ev_subscription {
     enum ev_subscription_type type;
     union ev_subscription_params params;
 };
+
+void subscribe(struct ev_subscription subscription);
+void handle(enum ev_type event, bool(predicate)(union ev_subscription_params*));

@@ -1,6 +1,8 @@
 #include "limine.h"
 #include "eaos.h"
 #include "framebuffer.h"
+#include "mem/util.h"
+#include "phys.h"
 
 __attribute__((used, section(".requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -19,6 +21,11 @@ static const u8 font[] = {
 };
 
 const u32 fb_margin = 5;
+
+// this is an abomination because instead of dynamically
+// allocating memory at runtime, it makes a huge hole
+// in the kernel binary. this drastically inflates its size for no good reason.
+static u32 abomination[2000*1000*4] = {0};
 
 // void load_font(struct psf1* font) {
 //     bool has_table = (font->modes & 0x02) != 0 || (font->modes & 0x04) != 0;
@@ -44,10 +51,6 @@ void fb_printc(struct eaos_terminal *terminal, char c) {
     u8* glyphs = (u8*)(((u8*)fnt) + 4); // 4 = size of header
     u8* glyph = &glyphs[c * glyph_size];
 
-    volatile u32* fb = terminal->framebuffer->address;
-    u32 width = terminal->framebuffer->width;
-    // u32 height = terminal->framebuffer->height;
-
     for (int y = 0; y < glyph_size; y++) {
         u8 row = glyph[y];
         for (int x = 0; x < glyph_width; x++) {
@@ -56,10 +59,16 @@ void fb_printc(struct eaos_terminal *terminal, char c) {
             if (off) {
                 color = 0x000000;
             }
-            fb[
-                ((y + fb_margin + terminal->line * glyph_size + 3) * width)
-                + x + terminal->cursor_x + fb_margin
-            ] = color;
+            fb_set_px(
+                terminal,
+                x + terminal->cursor_x + fb_margin,
+                y + fb_margin + terminal->line * glyph_size + 3,
+                color
+            );
+            // fb[
+            //     ((y + fb_margin + terminal->line * glyph_size + 3) * width)
+            //     + x + terminal->cursor_x + fb_margin
+            // ] = color;
         }
     }
 
@@ -72,6 +81,20 @@ inline struct limine_framebuffer* fb_get_framebuffer() {
 
 inline void fb_set_px(struct eaos_terminal *term, u32 x, u32 y, u32 color) {
     u64 width = term->framebuffer->width;
-    volatile u32* fb = term->framebuffer->address;
+    u32* fb = term->fbmem;
     fb[width * y + x] = color;
+}
+
+// buffering
+void fb_done(struct eaos_terminal *term) {
+    return;
+    struct limine_framebuffer *fb = term->framebuffer;
+    vmemcpy(fb->address, term->fbmem, fb->width * fb->height * sizeof(u32));
+}
+
+void *fb_allocate_buffer(struct limine_framebuffer *fb) {
+    // u32 size = fb->width * fb->height * sizeof(u32); 
+    // void *addr = kcalloc(size / MEM_PAGE_SIZE);
+    // return addr;
+    return abomination;
 }

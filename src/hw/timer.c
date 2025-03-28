@@ -1,4 +1,5 @@
 #include "hw/timer.h"
+#include "event.h"
 #include "framebuffer.h"
 #include "irq.h"
 #include "log.h"
@@ -20,11 +21,19 @@ void timer_init(void) {
     kinfo("setting up PIC timer!");
 
     irq_handle(0x00, timer_handle_entry);
-    demo.enabled = true;
+    // demo.enabled = true;
+}
+
+static bool timer_predicate(union ev_subscription_params *p) {
+    // FIXME: ignores config option `milliseconds`
+    return true;
 }
 
 void timer_handle(void) {
-    if (!demo.enabled) return;
+    // send to the event bus!
+    handle(ev_timer, timer_predicate);
+
+    if (!demo.enabled) goto done;
 
     // step the demo
     struct eaos_terminal *term = log_getterm();
@@ -61,5 +70,6 @@ void timer_handle(void) {
 
     ++ demo.tick;
 
+done:
     pic_eoi(0x00);
 }

@@ -50,8 +50,8 @@ void init_pmm(void) {
         kpanic("couldn't find any available memory?");
     }
 
-    kinfo("Detected available memory:");
-    print_number(total_memory);
+    kinfo(ksprintf("Detected available memory: %d", total_memory));
+    kinfo(ksprintf("Detected largest block of: %d", largest_block->length));
 
     pmm_status.end = (void *) (largest_block->base + largest_block->length);
     pmm_status.head = (void *) largest_block->base;
@@ -62,9 +62,9 @@ void init_pmm(void) {
 void* kalloc(u32 pages) {
     void* head = pmm_status.head;
     pmm_status.head += MEM_PAGE_SIZE * pages;
-    if (pmm_status.head > pmm_status.end) {
-        kpanic("out of memory");
-    }
+    // if (pmm_status.head > pmm_status.end) {
+    //     kpanic("out of memory");
+    // }
 
     return head + hhdm_request.response->offset;
 };

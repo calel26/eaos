@@ -7,6 +7,7 @@ struct ui_button_config {
     char *text;
     u32 color;
     u32 hover_color;
+    bool disabled;
     void (*on_click)(struct ui_state *state);
 };
 

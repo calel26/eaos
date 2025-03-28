@@ -1,9 +1,12 @@
 section .text
 
 global save_ctx
+global restore_ctx
 
+; clobbers rax and r8
 save_ctx:
-    ; push RIP to stack before calling
+    ; it really doesn't make sense to store RDI, and it isn't restored
+    ; oh well, removing it would mean I have to change all the offsets...
     mov [rdi], rdi
     mov [rdi + 8], rsi
     mov [rdi + 16], rbp
@@ -21,9 +24,7 @@ save_ctx:
     mov [rdi + 112], r14
     mov [rdi + 120], r15
 
-    ; load rip from stack
-    pop rax
-    mov [rdi + 128], rax
+    ; rip is saved by the caller (b/c it's easier)
 
     pushfq
     pop rax
@@ -32,10 +33,11 @@ save_ctx:
     ret
 
 restore_ctx:
+    ; why/how would I load RDI? it doesn't make sense, not doing it.
     mov rsi, [rdi + 8]
     mov rbp, [rdi + 16]
     mov rsp, [rdi + 24]
-    mov rax, [rdi + 32]
+    ; rax is clobbered later to restore flags, so it will be restored at the end
     mov rbx, [rdi + 40]
     mov rcx, [rdi + 48]
     mov rdx, [rdi + 56]
@@ -48,12 +50,13 @@ restore_ctx:
     mov r14, [rdi + 112]
     mov r15, [rdi + 120]
     
-    ; load rdi last
-    ; (this causes issues and doesn't make sense, so I'm not doing it.)
-    ; mov rdi, [rdi]
+    ; restore processor flags
+    mov rax, [rdi + 136]
+    push rax
+    popfq
+
+    ; finally restore rax
+    mov rax, [rdi + 32]
 
     ; jump back to that code
     jmp [rdi + 128]
-
-new_ctx:
-    xor rax, rax

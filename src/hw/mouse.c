@@ -1,5 +1,6 @@
 #include "mouse.h"
 #include "eaos.h"
+#include "event.h"
 #include "io.h"
 #include "irq.h"
 #include "log.h"
@@ -77,6 +78,11 @@ static struct mouse cursor = {
 static u8 packet[3] = {0};
 static u8 packet_index = 0;
 
+static bool mouse_predicate(union ev_subscription_params *p) {
+    // FIXME: implement this properly
+    return true;
+}
+
 static void handle_full_packet(u8 info, i8 x, i8 y) {
     // check for invalid data...
     if (info & X_OFLOW || info & Y_OFLOW) return;
@@ -90,6 +96,9 @@ static void handle_full_packet(u8 info, i8 x, i8 y) {
 
     cursor.x += x;
     cursor.y -= y;
+
+    // send to event bus!
+    handle(ev_mouse, mouse_predicate);
 
     // redraw the UI
     redraw();

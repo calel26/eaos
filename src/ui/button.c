@@ -5,7 +5,8 @@
 static void render_button(struct ui_state *state) {
     struct ui_button_config *conf = state->elem->conf;
     struct ui_bbox bbox = state->elem->bbox;
-    if (state->mouse->l && state->mouse_over) {
+    bool disabled = conf->disabled;
+    if (state->mouse->l && state->mouse_over && !disabled) {
         conf->on_click(state);
     }
 
@@ -14,6 +15,9 @@ static void render_button(struct ui_state *state) {
     if (hovering) {
         color = conf->hover_color;
     }
+    if (disabled) {
+        color = 0xAFAFAF;
+    }
 
     // render background
     for (u32 x = bbox.x; x < bbox.x + bbox.w; x++) {
@@ -21,6 +25,8 @@ static void render_button(struct ui_state *state) {
             fb_set_px(state->term, x, y, color);
         }
     }
+
+    // fb_print(state->term, "done one");
 
     // render text
     u32 len = 0;
