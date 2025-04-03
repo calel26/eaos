@@ -1,4 +1,5 @@
 #include "cpu/idt.h"
+#include "ctx.h"
 #include "eaos.h"
 #include "hw/keyboard.h"
 #include "hw/timer.h"
@@ -63,8 +64,22 @@ void start(void) {
 
     // wait to start init
     for(;;) {
-        if (should_start_init()) placeholder_init();
-        __asm__("hlt");
+        if (should_start_init()) {
+            struct context ctx;
+            // this is just to save rflags and other bits and bobs
+            // SECURITY: this exposes all the regsiters of this function to the init function
+            save_ctx(&ctx);
+
+            // allocate a new stack
+            void *stack = kalloc(4);
+
+            // assign the stack
+            ctx.rsp = (u64) (stack + MEM_PAGE_SIZE * 4);
+            // assign the entrypoint
+            ctx.rip = (u64) placeholder_init;
+            restore_ctx(&ctx);
+        }
+        __asm__ ("hlt");
     }
 }
 

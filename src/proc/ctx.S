@@ -59,4 +59,6 @@ restore_ctx:
     mov rax, [rdi + 32]
 
     ; jump back to that code
-    jmp [rdi + 128]
+    push qword [rdi + 128]
+    ret
+    ; jmp [rdi + 128]

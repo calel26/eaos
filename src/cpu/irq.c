@@ -87,26 +87,61 @@ void irq_handle(u8 relative_vector, void *handler) {
 void div_by_zero() {
     kpanic("division by zero");
 };
-void single_step_interrupt() {};
-void nmi_error() {};
-void breakpoint() {};
-void overflow() {};
-void bound_range_exceeded() {};
-void invalid_opcode() {};
-void coprocessor_not_available() {};
+void single_step_interrupt() {
+    kinfo("single step interrupt");
+};
+void nmi_error() {
+    kpanic("NMI error");
+};
+void breakpoint() {
+    kinfo("breakpoint reached");
+};
+void overflow() {
+    kpanic("STACK OVERFLOW!");
+};
+void bound_range_exceeded() {
+    kwarn("bound range exceeded");
+};
+void invalid_opcode() {
+    kwarn("invalid opcode");
+};
+void coprocessor_not_available() {
+    kwarn("coprocessor not available");
+};
 void double_fault() {
     kpanic("there was a double fault");
 }
-void invalid_tss() {};
-void segment_invalid() {};
-void stack_segment_fault() {};
-void general_protection_fault() {};
+void invalid_tss() {
+    kpanic("invalid TSS");
+};
+void segment_invalid() {
+    kpanic("segment invalid");
+};
+void stack_segment_fault() {
+    kwarn("stack segment fault");
+};
+void general_protection_fault() {
+    kwarn("protection fault");
+};
 void page_fault() {
     kpanic("page fault!");
 };
-void x87_float_exception() {};
-void alignment_check() {};
-void machine_check() {};
-void SIMD_float_exception() {};
-void virtualization_exception() {};
-void control_protection_exception() {};
+void x87_float_exception() {
+    kwarn("x87 float exception");
+};
+void alignment_check() {
+    kwarn("alignment check");
+};
+void machine_check() {
+    kwarn("machine check");
+};
+void SIMD_float_exception() {
+    kwarn("SIMD float exception");
+};
+void virtualization_exception() {
+    // this will never happen in this kernel lmao
+    kwarn("virtualization exception");
+};
+void control_protection_exception() {
+    kwarn("control protection exception");
+};

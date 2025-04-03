@@ -17,14 +17,12 @@ void schedule() {
    save_ctx(thisproc->ctx);
    thisproc->status = proc_status_waiting;
 
-   // warning: taking the address of a label like this is nonstandard C!
-   thisproc->ctx->rip = (u64) &&return_here;
+   // warning: this is a compiler builtin, not a standard function!
+   thisproc->ctx->rip = (u64) __builtin_return_address(0);
 
    schedule_spin();
 
    // this should be unreachable by normal execution flow
-   return_here:
-   kinfo("h");
 }
 
 void wake_eventually(usize pid) {

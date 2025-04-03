@@ -28,7 +28,7 @@ void placeholder_init(void) {
 
     subscribe(s);
 
-    schedule();
+    schedule(); // won't yield until the subscription is awoken
 
     kinfo("HELLO I AM THE INIT FUNCTION AND I RAN SUCCESSFULLY!!!!!!");
 
