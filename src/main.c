@@ -26,6 +26,10 @@ void div_by_zero_test(void);
 void alloc_test(void);
 void do_absolutely_nothing(void);
 
+static u64 align_stack_ptr(u64 ptr) {
+    return ptr & ~0xF;
+} 
+
 void start(void) {
     struct eaos_terminal term = {
         .line = 0,
@@ -65,21 +69,36 @@ void start(void) {
     // wait to start init
     for(;;) {
         if (should_start_init()) {
-            struct context ctx;
+            // make a process.
+            usize proc = mkproc("init", "<kinit>");
+
+            kinfo(ksprintf("created init process as PID %d", proc));
+            if (proc != 1) {
+                kpanic("init not started as PID 1");
+            }
+
+            // allocate a context.
+            struct context *ctx = kalloc(1);
             // this is just to save rflags and other bits and bobs
-            // SECURITY: this exposes all the regsiters of this function to the init function
-            save_ctx(&ctx);
+            // SECURITY: this exposes all the registers of this function to the init function
+            save_ctx(ctx);
 
             // allocate a new stack
-            void *stack = kalloc(4);
+            u64 stack = (u64) ((u8*) kalloc(4) + MEM_PAGE_SIZE * 4);
+            // align it to 16 bytes
+            stack = align_stack_ptr(stack);
 
             // assign the stack
-            ctx.rsp = (u64) (stack + MEM_PAGE_SIZE * 4);
+            ctx->rsp = stack;
+            ctx->rbp = stack;
             // assign the entrypoint
-            ctx.rip = (u64) placeholder_init;
-            restore_ctx(&ctx);
+            ctx->rip = (u64) placeholder_init;
+
+            // manually set the context of the process
+            get_proc_table()[proc].ctx = ctx;
+            wake(proc);
         }
-        __asm__ ("hlt");
+        __asm__ volatile ("hlt");
     }
 }
 

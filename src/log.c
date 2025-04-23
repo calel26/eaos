@@ -105,6 +105,7 @@ struct eaos_terminal* log_getterm(void) {
 //  - %% -> %
 //  - %s -> [string]
 //  - %d -> [u64 value]
+//  - %c -> [ascii character]
 char* ksprintf(char *fmt, ...) {
     char* buf = kalloc(1);
     usize buf_i = 0;
@@ -137,6 +138,12 @@ char* ksprintf(char *fmt, ...) {
                 for (usize j = 0; j < sizeof(ns.data) - 1; j++) {
                     buf[buf_i++] = ns.data[j];
                 }
+                i += 1;
+                break;
+            case 'c':
+                // use int because `char` is promoted to `int` when passed thru the stack
+                char c = (char) va_arg(args, int);
+                buf[buf_i++] = c;
                 i += 1;
                 break;
             default:

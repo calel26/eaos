@@ -57,7 +57,7 @@ void init_pic() {
     // now we the PIC what interrupts to actually forward.
     // Only interested in 0x00, the timer, 0x01, the keyboard, and 0x02, the secondary PIC
     // On the second PIC, we want 0x0C (the fourth relatively), the mouse
-    pic_data(0b11111000, 0b11101111);
+    pic_data(0b11111001, 0b11101111);
 
     // enables RTC (int 0x08) for testing
     // __asm__ volatile ("cli");

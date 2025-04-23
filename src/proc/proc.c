@@ -2,13 +2,12 @@
 #include "config.h"
 #include "eaos.h"
 #include "log.h"
-#include "phys.h"
 
-extern void save_ctx(struct context* ctx);
+extern void save_ctx(struct context *ctx);
 
 // this doesn't return because it jumps far away and starts a new life.
 __attribute__((noreturn))
-extern void restore_ctx(struct context* ctx);
+extern void restore_ctx(struct context *ctx);
 
 struct proc proc_table[NPROC];
 
@@ -18,17 +17,13 @@ usize next_proc_n = 1;
 usize running_proc_id = 1;
 
 // creates a process and returns the process number.
-usize mkproc(char* name, char* image) {
-    struct context* ctx = kalloc(1);
-    // save_ctx(ctx); // this causes a page fault
-
+usize mkproc(char *name, char *image) {
     usize id = next_proc_n++;
     if (id >= NPROC) {
         kpanic("process limit reached!");
     }
 
     struct proc proc = {
-        .ctx = ctx,
         .id = id,
         .name = name,
         .image = image,
@@ -52,5 +47,6 @@ void wake(usize id) {
     running_proc_id = id;
     struct proc *p = &proc_table[id];
     p->status = proc_status_running;
+
     restore_ctx(p->ctx);
 }

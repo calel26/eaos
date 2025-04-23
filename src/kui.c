@@ -1,5 +1,8 @@
 #include "kui.h"
+#include "eaos.h"
 #include "event.h"
+#include "framebuffer.h"
+#include "kshell/main.h"
 #include "log.h"
 #include "phys.h"
 #include "proc.h"
@@ -31,24 +34,28 @@ void placeholder_init(void) {
     schedule(); // won't yield until the subscription is awoken
 
     kinfo("HELLO I AM THE INIT FUNCTION AND I RAN SUCCESSFULLY!!!!!!");
+    // drop into a shell
 
-    // yields forever, because all the subscriptions are gone.
-    schedule();
+    kshell_main();
 }
 
 static void on_click(struct ui_state *state) {
-    kinfo("clicked! starting /sbin/init...");
+    kinfo("clicked! starting init...");
     struct ui_button_config *bconf = state->elem->conf;
     bconf->text = "clicked!";
     bconf->disabled = true;
 
-    usize procn = mkproc("init", "/sbin/init");
-    kinfo(ksprintf("created init process as PID %d", procn));
-    if (procn != 1) {
-        kpanic("init not started as PID 1");
-    }
-
     signal_start_init = true;
+}
+
+static void explode_now(struct ui_state *state) {
+    kinfo("self destruct activated.");
+    struct ui_button_config *bconf = state->elem->conf;
+    bconf->text = ":)";
+    bconf->disabled = true;
+
+    struct eaos_terminal *term = log_getterm();
+    // todo: explode
 }
 
 static struct ui_button_config conf = {
@@ -62,6 +69,19 @@ static struct ui_button_config conf = {
     .hover_color = 0x00FF00,
     .on_click = on_click,
     .text = "run init process!"
+};
+
+static struct ui_button_config explode = {
+    .bbox = {
+        .x = 500,
+        .y = 100,
+        .h = 75,
+        .w = 150
+    },
+    .color = 0xFF3300,
+    .hover_color = 0xFF0000,
+    .on_click = explode_now,
+    .text = "explode"
 };
 
 void start_kui() {

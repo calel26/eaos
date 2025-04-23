@@ -3,6 +3,7 @@
 #include "framebuffer.h"
 #include "irq.h"
 #include "log.h"
+#include "util/rand.h"
 
 INTR(timer_handle)
 
@@ -20,7 +21,8 @@ static struct timer_demo demo = {
 void timer_init(void) {
     kinfo("setting up PIC timer!");
 
-    irq_handle(0x00, timer_handle_entry);
+    // this PIC timer is a source of instability, so I'm turning it off.
+    // irq_handle(0x00, timer_handle_entry);
     // demo.enabled = true;
 }
 
@@ -29,10 +31,14 @@ static bool timer_predicate(union ev_subscription_params *p) {
     return true;
 }
 
+static usize i = 0;
+
 void timer_handle(void) {
     // send to the event bus!
     handle(ev_timer, timer_predicate);
 
+    srand(rand());
+    
     if (!demo.enabled) goto done;
 
     // step the demo
